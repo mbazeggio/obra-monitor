@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: obras-monitor
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python listener.py
+    envVars:
+      - key: TELEGRAM_API_ID
+        sync: false
+      - key: TELEGRAM_API_HASH
+        sync: false
+      - key: TELEGRAM_CANAL
+        sync: false
+      - key: SPREADSHEET_ID
+        sync: false
+      - key: GOOGLE_CREDS_JSON
+        sync: false
+      - key: DRIVE_FOLDER_NAME
+        value: obras-monitor
