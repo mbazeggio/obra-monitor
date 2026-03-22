@@ -26,6 +26,9 @@ HEADER = [
     "fotos",
 ]
 
+# Cache em memória dos IDs já processados
+_cache_ids: set[str] | None = None
+
 
 def _get_creds() -> Credentials:
     creds_json = os.environ["GOOGLE_CREDS_JSON"]
@@ -49,6 +52,17 @@ def _get_sheet(client: gspread.Client, spreadsheet_id: str) -> gspread.Worksheet
     return sheet
 
 
+def _get_controle_sheet(client: gspread.Client, spreadsheet_id: str) -> gspread.Worksheet:
+    spreadsheet = client.open_by_key(spreadsheet_id)
+    try:
+        return spreadsheet.worksheet("_controle")
+    except gspread.WorksheetNotFound:
+        sheet = spreadsheet.add_worksheet("_controle", rows=50000, cols=1)
+        sheet.append_row(["msg_id"], value_input_option="RAW")
+        logger.info("Aba '_controle' criada na planilha.")
+        return sheet
+
+
 def append_rows(rows: list[dict]) -> bool:
     """Insere múltiplas linhas (uma por frente de trabalho) na planilha."""
     spreadsheet_id = os.environ["SPREADSHEET_ID"]
@@ -68,29 +82,68 @@ def append_rows(rows: list[dict]) -> bool:
         return False
 
 
+def carregar_ids_processados() -> set[str]:
+    """
+    Carrega todos os IDs já processados da aba '_controle'.
+    Popula o cache em memória — chamado uma vez no início do backfill.
+    """
+    global _cache_ids
+    spreadsheet_id = os.environ["SPREADSHEET_ID"]
+    try:
+        creds  = _get_creds()
+        client = gspread.authorize(creds)
+        sheet  = _get_controle_sheet(client, spreadsheet_id)
+        valores = sheet.col_values(1)[1:]  # pula cabeçalho
+        _cache_ids = set(valores)
+        logger.info(f"{len(_cache_ids)} IDs já processados carregados da planilha.")
+        return _cache_ids
+    except Exception as e:
+        logger.error(f"Erro ao carregar IDs processados: {e}")
+        _cache_ids = set()
+        return _cache_ids
+
+
+def ja_processado(msg_id: int) -> bool:
+    """Verifica no cache em memória se esta mensagem já foi gravada."""
+    global _cache_ids
+    if _cache_ids is None:
+        carregar_ids_processados()
+    return str(msg_id) in _cache_ids
+
+
+def marcar_processado(msg_id: int) -> None:
+    """Grava o ID na aba '_controle' e atualiza o cache."""
+    global _cache_ids
+    spreadsheet_id = os.environ["SPREADSHEET_ID"]
+    id_str = str(msg_id)
+
+    if _cache_ids is not None:
+        _cache_ids.add(id_str)
+
+    try:
+        creds  = _get_creds()
+        client = gspread.authorize(creds)
+        sheet  = _get_controle_sheet(client, spreadsheet_id)
+        sheet.append_row([id_str], value_input_option="RAW")
+    except Exception as e:
+        logger.error(f"Erro ao marcar ID {msg_id} como processado: {e}")
+
+
 def upload_photo(photo_bytes: bytes, filename: str, data_str: str) -> str | None:
     """
     Faz upload de uma foto para o Google Drive.
-    Organiza em subpastas: obras-monitor / YYYY-MM / data_str
+    Organiza em subpastas: obras-monitor / data_str
     Retorna o link público do arquivo ou None em caso de erro.
     """
-    drive_root_name = os.environ.get("DRIVE_FOLDER_NAME", "obras-monitor")
-
+    drive_root_name = "obras-monitor"
     try:
         creds   = _get_creds()
         service = build("drive", "v3", credentials=creds)
 
-        # Garante pasta raiz
-        root_id = _get_or_create_folder(service, drive_root_name, parent_id=None)
-
-        # Subpasta por data (ex: "16-03-2026")
+        root_id      = _get_or_create_folder(service, drive_root_name, parent_id=None)
         subfolder_id = _get_or_create_folder(service, data_str, parent_id=root_id)
 
-        # Upload do arquivo
-        file_metadata = {
-            "name":    filename,
-            "parents": [subfolder_id],
-        }
+        file_metadata = {"name": filename, "parents": [subfolder_id]}
         media = MediaIoBaseUpload(
             io.BytesIO(photo_bytes),
             mimetype="image/jpeg",
@@ -102,7 +155,6 @@ def upload_photo(photo_bytes: bytes, filename: str, data_str: str) -> str | None
             fields="id, webViewLink",
         ).execute()
 
-        # Torna o arquivo acessível via link
         service.permissions().create(
             fileId=uploaded["id"],
             body={"type": "anyone", "role": "reader"},
@@ -129,20 +181,9 @@ def _get_or_create_folder(service, name: str, parent_id: str | None) -> str:
     if files:
         return files[0]["id"]
 
-    metadata = {
-        "name":     name,
-        "mimeType": "application/vnd.google-apps.folder",
-    }
+    metadata = {"name": name, "mimeType": "application/vnd.google-apps.folder"}
     if parent_id:
         metadata["parents"] = [parent_id]
 
     folder = service.files().create(body=metadata, fields="id").execute()
     return folder["id"]
-
-
-def update_fotos_column(sheet_rows_written: int, links: list[str], sheet: gspread.Worksheet = None) -> None:
-    """Atualiza a coluna 'fotos' das últimas N linhas escritas."""
-    # Esta função é chamada após o upload das fotos, quando já sabemos os links.
-    # Por simplicidade, o listener passa a lista de links como string na linha do registro.
-    pass  # Implementado diretamente no listener via append_rows com fotos já preenchidas
-
