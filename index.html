@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diário de Obra — Green Village</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f5f0e8;--surface:#fffdf8;--border:#e2d9c8;
+    --text:#1a1612;--muted:#7a6e60;--accent:#c75c2a;
+    --green:#4a7c59;--blue:#2a5c8a;--yellow:#e8b84b;
+    --shadow:0 2px 12px rgba(26,22,18,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+  header{background:var(--text);color:var(--bg);padding:28px 40px 24px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+  .h-left h1{font-family:'DM Serif Display',serif;font-size:2rem;letter-spacing:-.5px;line-height:1}
+  .h-left h1 em{font-style:italic;color:var(--yellow)}
+  .h-left p{font-size:.75rem;color:#a09880;margin-top:6px;font-family:'DM Mono',monospace;letter-spacing:.5px}
+  .h-right{display:flex;align-items:center;gap:12px}
+  #last-update{font-family:'DM Mono',monospace;font-size:.72rem;color:#a09880}
+  #btn-refresh{background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+  #btn-refresh:hover{opacity:.85}
+  #btn-refresh:disabled{opacity:.5;cursor:default}
+
+  .filters{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 40px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .filters label{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+  .filters select,.filters input[type=date]{border:1px solid var(--border);background:var(--bg);padding:6px 10px;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--text)}
+  .sep{color:var(--border)}
+
+  .scorecards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+  .sc{background:var(--surface);padding:20px 24px}
+  .sc-label{font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .sc-val{font-family:'DM Serif Display',serif;font-size:2.2rem;line-height:1;margin-top:4px}
+
+  main{padding:32px 40px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  @media(max-width:900px){main{grid-template-columns:1fr;padding:20px}header,filters{padding-left:20px;padding-right:20px}}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:var(--shadow)}
+  .panel-full{grid-column:1/-1}
+  .ph{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .pt{font-family:'DM Serif Display',serif;font-size:1rem}
+  .pb{padding:20px}
+
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.81rem}
+  thead tr{border-bottom:2px solid var(--text)}
+  th{text-align:left;padding:8px 10px;font-size:.67rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+  td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.4}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--bg)}
+
+  .badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.69rem;font-weight:600;white-space:nowrap}
+  .b-exec{background:#e8f4ed;color:#2d6e45}
+  .b-pause{background:#fdf0e6;color:#b05a1a}
+  .b-plan{background:#e6eef8;color:#1a4a7a}
+  .b-done{background:#f0f0f0;color:#555}
+
+  .pb-wrap{display:flex;align-items:center;gap:8px}
+  .pb-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;min-width:50px}
+  .pb-fill{height:100%;border-radius:3px;background:var(--green)}
+  .pb-pct{font-family:'DM Mono',monospace;font-size:.71rem;color:var(--muted);min-width:30px;text-align:right}
+
+  .ativ-list{display:flex;flex-direction:column;gap:10px}
+  .ativ{padding:12px 14px;border:1px solid var(--border);border-radius:4px;border-left:3px solid var(--accent)}
+  .ativ.pause{border-left-color:var(--yellow)}
+  .ativ.plan{border-left-color:var(--blue)}
+  .ativ.done{border-left-color:#ccc}
+  .ativ-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+  .ativ-bloco{font-family:'DM Mono',monospace;font-size:.69rem;color:var(--muted)}
+  .ativ-name{font-weight:600;font-size:.85rem;line-height:1.3}
+  .ativ-obs{font-size:.77rem;color:var(--muted);margin-top:4px;font-style:italic}
+  .ativ-eq{font-size:.74rem;color:var(--muted);margin-top:5px}
+  .clima-row{display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--muted);margin-bottom:14px}
+
+  #loading,#err{grid-column:1/-1;padding:60px;text-align:center;color:var(--muted)}
+  #err{color:var(--accent)}
+  .spin{display:inline-block;width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;margin-bottom:10px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <h1>Diário de <em>Obras</em></h1>
+    <p>GREEN VILLAGE · ACOMPANHAMENTO DE FRENTES</p>
+  </div>
+  <div class="h-right">
+    <span id="last-update">—</span>
+    <button id="btn-refresh" onclick="loadData()">↻ Atualizar</button>
+  </div>
+</header>
+
+<div class="filters">
+  <label>De</label><input type="date" id="f-ini">
+  <span class="sep">→</span>
+  <label>Até</label><input type="date" id="f-fim">
+  <span class="sep">|</span>
+  <label>Bloco</label><select id="f-bloco"><option value="">Todos</option></select>
+  <span class="sep">|</span>
+  <label>Status</label>
+  <select id="f-status">
+    <option value="">Todos</option>
+    <option value="execu">Em execução</option>
+    <option value="paus">Pausada</option>
+    <option value="plan">Planejada</option>
+    <option value="conclu">Concluída</option>
+  </select>
+</div>
+
+<div class="scorecards">
+  <div class="sc"><div class="sc-label">Registros</div><div class="sc-val" id="sc-tot">—</div></div>
+  <div class="sc"><div class="sc-label">Em execução</div><div class="sc-val" style="color:var(--green)" id="sc-exec">—</div></div>
+  <div class="sc"><div class="sc-label">Pausadas</div><div class="sc-val" style="color:var(--accent)" id="sc-pause">—</div></div>
+  <div class="sc"><div class="sc-label">Planejadas</div><div class="sc-val" style="color:var(--blue)" id="sc-plan">—</div></div>
+  <div class="sc"><div class="sc-label">Vistoria (último)</div><div class="sc-val" id="sc-vist">—</div></div>
+</div>
+
+<main id="grid">
+  <div id="loading"><div class="spin"></div><br>Carregando dados…</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const SID = '1LrmWb2Vq8hAcl-gN661fXSEMbEhuNrEAHu-2_vTwCK4';
+const KEY = 'AIzaSyAj3JrInz8PZ-orGFdE71J62Cu6MLoD_hQ';
+let rows = [], chart1 = null;
+
+function parseDate(s) {
+  if (!s) return null;
+  const [d,m,y] = s.split('/');
+  return d&&m&&y ? new Date(`${y}-${m}-${d}`) : null;
+}
+function sc(s) {
+  s=(s||'').toLowerCase();
+  if(s.includes('execu')) return 'exec';
+  if(s.includes('paus'))  return 'pause';
+  if(s.includes('plan'))  return 'plan';
+  if(s.includes('conclu'))return 'done';
+  return 'exec';
+}
+function badge(s){ return {exec:'b-exec',pause:'b-pause',plan:'b-plan',done:'b-done'}[sc(s)]; }
+function clima(c){
+  c=(c||'').toLowerCase();
+  if(c.includes('chuva')||c.includes('chov')) return '🌧';
+  if(c.includes('névoa')||c.includes('nevoa')||c.includes('neblina')) return '🌫';
+  if(c.includes('nuvem')||c.includes('nublad')||c.includes('nuvens')) return '⛅';
+  if(c.includes('sol')||c.includes('ensol')) return '☀️';
+  return '🌤';
+}
+
+async function loadData() {
+  const btn = document.getElementById('btn-refresh');
+  btn.disabled=true; btn.textContent='…';
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/diario?key=${KEY}`;
+  try {
+    const r = await fetch(url);
+    if(!r.ok) throw new Error(`HTTP ${r.status} — verifique se a planilha está pública`);
+    const j = await r.json();
+    const vals = j.values||[];
+    if(vals.length<2) throw new Error('Planilha sem dados ainda');
+    const hdr = vals[0];
+    rows = vals.slice(1).map(r=>{
+      const o={};
+      hdr.forEach((h,i)=>o[h]=r[i]||'');
+      return o;
+    });
+    document.getElementById('last-update').textContent='Atualizado '+new Date().toLocaleTimeString('pt-BR');
+    fillBlocos();
+    render();
+  } catch(e){
+    document.getElementById('grid').innerHTML=`<div id="err">⚠️ ${e.message}</div>`;
+  } finally {
+    btn.disabled=false; btn.textContent='↻ Atualizar';
+  }
+}
+
+function fillBlocos(){
+  const sel=document.getElementById('f-bloco');
+  const bs=[...new Set(rows.map(r=>r.bloco_local).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">Todos</option>';
+  bs.forEach(b=>{ const o=document.createElement('option');o.value=b;o.textContent=b;sel.appendChild(o);});
+}
+
+function filtered(){
+  const ini=document.getElementById('f-ini').value;
+  const fim=document.getElementById('f-fim').value;
+  const bl=document.getElementById('f-bloco').value;
+  const st=document.getElementById('f-status').value;
+  return rows.filter(r=>{
+    const d=parseDate(r.data);
+    if(ini&&d&&d<new Date(ini)) return false;
+    if(fim&&d&&d>new Date(fim+'T23:59')) return false;
+    if(bl&&r.bloco_local!==bl) return false;
+    if(st&&!(r.status||'').toLowerCase().includes(st)) return false;
+    return true;
+  });
+}
+
+function render(){
+  const fr=filtered();
+  // Scorecards
+  document.getElementById('sc-tot').textContent=fr.length;
+  document.getElementById('sc-exec').textContent=fr.filter(r=>(r.status||'').toLowerCase().includes('execu')).length;
+  document.getElementById('sc-pause').textContent=fr.filter(r=>(r.status||'').toLowerCase().includes('paus')).length;
+  document.getElementById('sc-plan').textContent=fr.filter(r=>(r.status||'').toLowerCase().includes('plan')).length;
+
+  const datas=[...new Set(fr.map(r=>r.data))].sort((a,b)=>(parseDate(b)||0)-(parseDate(a)||0));
+  if(datas.length){
+    const v=fr.find(r=>r.data===datas[0])?.vistoria_eng||'—';
+    const el=document.getElementById('sc-vist');
+    el.textContent=v.toLowerCase().includes('realiz')?'✓':'✗';
+    el.style.color=v.toLowerCase().includes('realiz')?'var(--green)':'var(--accent)';
+  }
+
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  if(!fr.length){grid.innerHTML='<div id="err">Nenhum registro para os filtros selecionados.</div>';return;}
+
+  grid.appendChild(buildUltimo(fr,datas[0]));
+  grid.appendChild(buildProgresso(fr));
+  grid.appendChild(buildTabela(fr));
+}
+
+function buildUltimo(fr,ultData){
+  const ult=fr.filter(r=>r.data===ultData);
+  const p=document.createElement('div'); p.className='panel';
+  const r0=ult[0]||{};
+  p.innerHTML=`
+    <div class="ph"><span class="pt">Último Registro — ${ultData}</span>
+    <span style="font-size:.74rem;color:var(--muted)">${r0.vistoria_eng?'Vistoria: '+r0.vistoria_eng:''}</span></div>
+    <div class="pb">
+      ${r0.clima_manha?`<div class="clima-row">${clima(r0.clima_manha)} Manhã: ${r0.clima_manha} &nbsp;|&nbsp; ${clima(r0.clima_tarde)} Tarde: ${r0.clima_tarde}</div>`:''}
+      <div class="ativ-list">
+        ${ult.map(r=>`
+          <div class="ativ ${sc(r.status)}">
+            <div class="ativ-top">
+              <div><div class="ativ-bloco">${r.bloco_local}</div><div class="ativ-name">${r.atividade}</div></div>
+              <span class="badge ${badge(r.status)}">${r.status}</span>
+            </div>
+            <div class="pb-wrap"><div class="pb-bar"><div class="pb-fill" style="width:${r.progresso_pct||0}%"></div></div><span class="pb-pct">${r.progresso_pct||0}%</span></div>
+            ${r.observacao?`<div class="ativ-obs">${r.observacao}</div>`:''}
+            ${r.equipe?`<div class="ativ-eq">👷 ${r.equipe}</div>`:''}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  return p;
+}
+
+function buildProgresso(fr){
+  const byA={};
+  fr.forEach(r=>{
+    if(!byA[r.atividade]||parseDate(r.data)>parseDate(byA[r.atividade].data)) byA[r.atividade]=r;
+  });
+  const items=Object.values(byA).sort((a,b)=>b.progresso_pct-a.progresso_pct).slice(0,8);
+  const p=document.createElement('div'); p.className='panel';
+  p.innerHTML=`<div class="ph"><span class="pt">Progresso por Atividade</span></div><div class="pb"><canvas id="c1" height="250"></canvas></div>`;
+  setTimeout(()=>{
+    const ctx=document.getElementById('c1'); if(!ctx) return;
+    if(chart1) chart1.destroy();
+    chart1=new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:items.map(r=>r.atividade.length>32?r.atividade.slice(0,30)+'…':r.atividade),
+        datasets:[{
+          data:items.map(r=>Number(r.progresso_pct)||0),
+          backgroundColor:items.map(r=>({exec:'#4a7c59',pause:'#e8b84b',plan:'#2a5c8a',done:'#ccc'})[sc(r.status)]),
+          borderRadius:3
+        }]
+      },
+      options:{
+        indexAxis:'y',
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{min:0,max:100,grid:{color:'#e2d9c8'},ticks:{font:{family:'DM Mono',size:11},callback:v=>v+'%'}},
+          y:{grid:{display:false},ticks:{font:{family:'DM Sans',size:11}}}
+        }
+      }
+    });
+  },50);
+  return p;
+}
+
+function buildTabela(fr){
+  const sorted=[...fr].sort((a,b)=>(parseDate(b.data)||0)-(parseDate(a.data)||0));
+  const p=document.createElement('div'); p.className='panel panel-full';
+  p.innerHTML=`
+    <div class="ph"><span class="pt">Todos os Registros</span><span style="font-size:.74rem;color:var(--muted)">${sorted.length} entradas</span></div>
+    <div class="pb table-wrap">
+      <table>
+        <thead><tr><th>Data</th><th>Bloco</th><th>Atividade</th><th>Progresso</th><th>Status</th><th>Observação</th><th>Equipe</th><th>Clima</th><th>Vistoria</th></tr></thead>
+        <tbody>${sorted.map(r=>`
+          <tr>
+            <td style="font-family:'DM Mono',monospace;font-size:.74rem;white-space:nowrap">${r.data}</td>
+            <td style="font-weight:600;white-space:nowrap">${r.bloco_local}</td>
+            <td style="max-width:200px">${r.atividade}</td>
+            <td><div class="pb-wrap"><div class="pb-bar"><div class="pb-fill" style="width:${r.progresso_pct||0}%"></div></div><span class="pb-pct">${r.progresso_pct||0}%</span></div></td>
+            <td><span class="badge ${badge(r.status)}">${r.status}</span></td>
+            <td style="max-width:160px;font-size:.77rem;color:var(--muted)">${r.observacao}</td>
+            <td style="max-width:160px;font-size:.74rem">${r.equipe}</td>
+            <td style="white-space:nowrap;font-size:.77rem">${clima(r.clima_manha)} ${r.clima_manha}</td>
+            <td style="font-size:.77rem">${r.vistoria_eng}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  return p;
+}
+
+['f-ini','f-fim','f-bloco','f-status'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',render);
+});
+
+loadData();
+</script>
+</body>
+</html>
