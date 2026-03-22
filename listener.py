@@ -28,7 +28,7 @@ BRASILIA   = timezone(timedelta(hours=-3))
 API_ID     = int(os.environ["TELEGRAM_API_ID"])
 API_HASH   = os.environ["TELEGRAM_API_HASH"]
 CANAL      = os.environ["TELEGRAM_CANAL"]
-SESSION    = "obras_monitor"
+SESSION    = "obra_monitor"
 BATCH_SIZE = 100  # mensagens por lote no backfill
 
 
