@@ -1,4 +1,4 @@
-# Obras Monitor — Green Village
+# Obra Monitor — Green Village
 
 Listener Python que captura mensagens do grupo Telegram do diário de obras,
 faz parse dos dados e grava em Google Sheets. Fotos são salvas no Google Drive
