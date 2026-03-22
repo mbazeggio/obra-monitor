@@ -131,17 +131,19 @@ def marcar_processado(msg_id: int) -> None:
 
 def upload_photo(photo_bytes: bytes, filename: str, data_str: str) -> str | None:
     """
-    Faz upload de uma foto para o Google Drive.
-    Organiza em subpastas: obras-monitor / data_str
-    Retorna o link público do arquivo ou None em caso de erro.
+    Faz upload para pasta do Drive pessoal compartilhada com a Service Account.
+    DRIVE_FOLDER_ID = ID da pasta raiz no Drive pessoal do usuário.
+    Organiza em subpastas por data dentro dela.
     """
-    drive_root_name = "obras-monitor"
+    drive_folder_id = os.environ.get("DRIVE_FOLDER_ID", "")
+    if not drive_folder_id:
+        logger.error("Variável DRIVE_FOLDER_ID não configurada.")
+        return None
     try:
         creds   = _get_creds()
         service = build("drive", "v3", credentials=creds)
 
-        root_id      = _get_or_create_folder(service, drive_root_name, parent_id=None)
-        subfolder_id = _get_or_create_folder(service, data_str, parent_id=root_id)
+        subfolder_id = _get_or_create_folder(service, data_str, parent_id=drive_folder_id)
 
         file_metadata = {"name": filename, "parents": [subfolder_id]}
         media = MediaIoBaseUpload(
