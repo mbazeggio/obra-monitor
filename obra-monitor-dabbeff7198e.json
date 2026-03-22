@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "agua-monitor",
+  "private_key_id": "dabbeff7198ea6e1e158fc7fe4c01a3a8345758f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDLC5Km4kMW0Nhn\nncVJCJWK5GHOkELcDOiKYzukbFDBugKpqxlEDdfuhbBVEOyQBBzAWqkVDWnjfjOl\nMK7M/DlJyjB6PyzAd6/3g5LRGuESUve14k8CZEuGbH3ju8Eyfcv1xSteRX4p4j4i\nkPBEhFfqDSRCydwH89a6zU+scKNmckQ8cVEMbd65rye8KaDWEN4rl4QLibymtPIm\n+fK5FKUmL1plR8E7hskqVmhQQ53bWVVW+RhdxbixRSG3ElHVPKpbekO6UIjBEmXd\nibbtT4fhmtJn04ptRmJX352mDGVCSQPkuQjUKCyp7zLeDkenuDjD1NhvigRlWmLW\n9JWkW8H1AgMBAAECggEAAITZjZqjcEH9Y5poIC0o8K9vvo7o1NYlnADv7JYoSK54\nhkV9LYrZg+8MidMev6l7B1TT/M1JeX7fk+sBb12vqcwd/pn9u8oyhW/tJqKqc5kJ\nsAnRiOCHvuK1Galnr4DZzhmAaF/GGEZPQVhcfNhXvy3ka1VHvi9124ldzEOHb2IX\nNxH9YeNlP7cPlPnfRfohc7jkSzNXb+kk6Qq1ngyFw0/HAW5BrBs6Aq+JZNFq3RyR\nYey/X6+sNJdqq83nPeuYzTyW8OITZIvdUc4vmN4GCkD+XUda9V4Ibbv+WeJDb1mt\nSD+Nzfg7hRy20wpua97jN6aGwQZtajBRCawBTxzQWwKBgQDrDtS9NaOsP3ceGJgn\nRAqdyHm4P3/YfzVLqs+a4tiB0W0wYimErvYo5vHMkK7cIp8nkaqYgIpD/rwS0zRp\nZszhXIGLoH6lUTrfTfTeEZHmwnnsX0bXwOV2A87HHtcHsaj9ERr9O8mHm6a7yYHi\nnqCC+WwmEp9LngEd9ficmlobEwKBgQDdIpmX2KhdGjkcr92C+JI0YpdGsFJHHK0C\nqpjn3zD2f32q1yjHEzcJ2qDbZbJILDkKoTEBHJaPCjq16FaT4Iu4cDx1qLIirVjg\neWlwFaJCtBeMNUzolv6n6G93MXIDN880BxFbCKW6sLIE0/dwCWJ3Ed6Gud6WNpC1\nOxeDLPiH1wKBgFr7f57JH1QxsJKmpGY2cQGHso19jqem/WMPd5IVEgaVoHTk2fsw\nmblVQuySaAxvHjl7qZOj1WDiPbvvok7V6qGkY8Q+2CZ3HZmHnCtEk7vFNNooOsyS\nLn8SlDwAlOy2eJmTwGWaebQSrGPtaGfmTGzFzHWkKaJkQzxsk9FR8WSfAoGAbtQ+\ngnoVt8PCx/vkWxXVwOeAxe7s7bMTiviRdfTIh2JSS2NWjp+0v/2RDSSk+8MeO5Oa\nCeKYGsyXrD/r1GV/4UpvItEPpo2Ws7pl+8T7885q1tyH1TKIIwM9ilF/wNkhwgOg\n0S0+UpjoP780jjRF40NTcdaKFmL2l74sBJRvYzUCgYBSZ1TBbzuJJTjWnNdB3Y/C\nSeTMD5dvFzMsrI7S1NnM+F+HV70SJZB4jPf2u8v1i/eq8UYjMS3FrMI3pp2F4jXe\nxUjZDp15ASD09UuHoE3RSTKDvnufwzMcelkPwf75zdAfRafWfIkpZ5n1BYpGLJH8\nyiah/qqlcqAlmrQLqU31qA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "agua-monitor@agua-monitor.iam.gserviceaccount.com",
+  "client_id": "115095231337273359151",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/agua-monitor%40agua-monitor.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
