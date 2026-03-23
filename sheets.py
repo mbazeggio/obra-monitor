@@ -155,11 +155,13 @@ def upload_photo(photo_bytes: bytes, filename: str, data_str: str) -> str | None
             body=file_metadata,
             media_body=media,
             fields="id, webViewLink",
+            supportsAllDrives=True,
         ).execute()
 
         service.permissions().create(
             fileId=uploaded["id"],
             body={"type": "anyone", "role": "reader"},
+            supportsAllDrives=True,
         ).execute()
 
         link = uploaded.get("webViewLink", "")
@@ -177,7 +179,7 @@ def _get_or_create_folder(service, name: str, parent_id: str | None) -> str:
     if parent_id:
         query += f" and '{parent_id}' in parents"
 
-    results = service.files().list(q=query, fields="files(id)").execute()
+    results = service.files().list(q=query, fields="files(id)", supportsAllDrives=True, includeItemsFromAllDrives=True).execute()
     files   = results.get("files", [])
 
     if files:
@@ -187,5 +189,52 @@ def _get_or_create_folder(service, name: str, parent_id: str | None) -> str:
     if parent_id:
         metadata["parents"] = [parent_id]
 
-    folder = service.files().create(body=metadata, fields="id").execute()
+    folder = service.files().create(body=metadata, fields="id", supportsAllDrives=True).execute()
     return folder["id"]
+
+
+def add_foto_to_diario(data_str: str, link: str) -> None:
+    """
+    Adiciona o link de uma foto na coluna 'fotos' de todas as linhas
+    da aba 'diario' que correspondem à data informada.
+    Múltiplos links ficam separados por ' | '.
+    """
+    spreadsheet_id = os.environ["SPREADSHEET_ID"]
+    try:
+        creds  = _get_creds()
+        client = gspread.authorize(creds)
+        sheet  = _get_sheet(client, spreadsheet_id)
+
+        # Busca todas as linhas da planilha
+        all_values = sheet.get_all_values()
+        if not all_values:
+            return
+
+        headers = all_values[0]
+        try:
+            col_data  = headers.index("data") + 1   # 1-based
+            col_fotos = headers.index("fotos") + 1
+        except ValueError:
+            logger.error("Colunas 'data' ou 'fotos' não encontradas.")
+            return
+
+        # Atualiza todas as linhas da data correspondente
+        updates = []
+        for i, row in enumerate(all_values[1:], start=2):  # linha 2 em diante
+            if len(row) >= col_data and row[col_data - 1] == data_str:
+                atual = row[col_fotos - 1] if len(row) >= col_fotos else ""
+                novo  = (atual + " | " + link).strip(" | ") if atual else link
+                updates.append({
+                    "range": gspread.utils.rowcol_to_a1(i, col_fotos),
+                    "values": [[novo]]
+                })
+
+        if updates:
+            sheet.spreadsheet.values_batch_update({
+                "valueInputOption": "USER_ENTERED",
+                "data": updates
+            })
+            logger.info(f"{len(updates)} linha(s) atualizadas com foto para {data_str}")
+
+    except Exception as e:
+        logger.error(f"Erro ao associar foto ao diário: {e}")
